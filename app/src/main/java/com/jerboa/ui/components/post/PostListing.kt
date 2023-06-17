@@ -70,6 +70,7 @@ import com.jerboa.datatypes.PostView
 import com.jerboa.datatypes.sampleImagePostView
 import com.jerboa.datatypes.sampleLinkNoThumbnailPostView
 import com.jerboa.datatypes.sampleLinkPostView
+import com.jerboa.datatypes.samplePersonSafe2
 import com.jerboa.datatypes.samplePostView
 import com.jerboa.db.Account
 import com.jerboa.hostName
@@ -89,6 +90,7 @@ import com.jerboa.ui.components.common.PreviewLines
 import com.jerboa.ui.components.common.ScoreAndTime
 import com.jerboa.ui.components.common.SimpleTopAppBar
 import com.jerboa.ui.components.common.TimeAgo
+import com.jerboa.ui.components.common.VoteDisplay
 import com.jerboa.ui.components.common.VoteGeneric
 import com.jerboa.ui.components.common.scoreColor
 import com.jerboa.ui.components.community.CommunityLink
@@ -117,7 +119,53 @@ fun PostHeaderLine(
     modifier: Modifier = Modifier,
     showCommunityName: Boolean = true,
     showAvatar: Boolean,
+    account: Account?,
+    onSaveClick: (PostView) -> Unit = {},
+    onBlockCreatorClick: (person: PersonSafe) -> Unit = {},
+    onBlockCommunityClick: (community: CommunitySafe) -> Unit = {},
+    onEditPostClick: (postView: PostView) -> Unit = {},
+    onDeletePostClick: (postView: PostView) -> Unit = {},
+    onReportClick: (postView: PostView) -> Unit = {},
+
 ) {
+    var showMoreOptions by remember { mutableStateOf(false) }
+
+    if (showMoreOptions) {
+        PostOptionsDialog(
+            postView = postView,
+            onDismissRequest = { showMoreOptions = false },
+            onEditPostClick = {
+                showMoreOptions = false
+                onEditPostClick(postView)
+            },
+            onDeletePostClick = {
+                showMoreOptions = false
+                onDeletePostClick(postView)
+            },
+            onCommunityClick = {
+                showMoreOptions = false
+                onCommunityClick(postView.community)
+            },
+            onPersonClick = {
+                showMoreOptions = false
+                onPersonClick(postView.creator.id)
+            },
+            onReportClick = {
+                showMoreOptions = false
+                onReportClick(postView)
+            },
+            onBlockCommunityClick = {
+                showMoreOptions = false
+                onBlockCommunityClick(postView.community)
+            },
+            onBlockCreatorClick = {
+                showMoreOptions = false
+                onBlockCreatorClick(postView.creator)
+            },
+            isCreator = account?.id == postView.creator.id,
+        )
+    }
+
     val community = postView.community
     Column(modifier = modifier) {
         Row(
@@ -139,63 +187,95 @@ fun PostHeaderLine(
                         )
                     }
                 }
-                Column(verticalArrangement = Arrangement.spacedBy(SMALL_PADDING)) {
-                    if (showCommunityName) {
-                        CommunityName(
-                            community = postView.community,
-                            modifier = Modifier.clickable { onCommunityClick(community) },
-                        )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(SMALL_PADDING),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(SMALL_PADDING)) {
+                        if (showCommunityName) {
+                            CommunityName(
+                                community = postView.community,
+                                modifier = Modifier.clickable { onCommunityClick(community) },
+                            )
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(SMALL_PADDING),
+                        ) {
+                            PersonProfileLink(
+                                person = postView.creator,
+                                onClick = onPersonClick,
+                                showTags = true,
+                                isPostCreator = false, // Set this to false, we already know this
+                                isModerator = isModerator,
+                                isCommunityBanned = postView.creator_banned_from_community,
+                                color = MaterialTheme.colorScheme.onSurface.muted,
+                                showAvatar = showAvatar,
+                            )
+                            if (postView.post.featured_local) {
+                                DotSpacer(0.dp)
+                                Icon(
+                                    imageVector = Icons.Outlined.PushPin,
+                                    contentDescription = stringResource(R.string.postListing_featuredLocal),
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(ACTION_BAR_ICON_SIZE),
+                                )
+                            }
+                            if (postView.post.featured_community) {
+                                DotSpacer(0.dp)
+                                Icon(
+                                    imageVector = Icons.Outlined.PushPin,
+                                    contentDescription = stringResource(R.string.postListing_featuredCommunity),
+                                    tint = MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier.size(ACTION_BAR_ICON_SIZE),
+                                )
+                            }
+                            if (postView.post.locked) {
+                                DotSpacer(0.dp)
+                                Icon(
+                                    imageVector = Icons.Outlined.CommentsDisabled,
+                                    contentDescription = stringResource(R.string.postListing_locked),
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(ACTION_BAR_ICON_SIZE),
+                                )
+                            }
+                        }
                     }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(SMALL_PADDING),
-                    ) {
-                        PersonProfileLink(
-                            person = postView.creator,
-                            onClick = onPersonClick,
-                            showTags = true,
-                            isPostCreator = false, // Set this to false, we already know this
-                            isModerator = isModerator,
-                            isCommunityBanned = postView.creator_banned_from_community,
-                            color = MaterialTheme.colorScheme.onSurface.muted,
-                            showAvatar = showAvatar,
-                        )
-                        if (postView.post.featured_local) {
-                            DotSpacer(0.dp)
-                            Icon(
-                                imageVector = Icons.Outlined.PushPin,
-                                contentDescription = stringResource(R.string.postListing_featuredLocal),
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(ACTION_BAR_ICON_SIZE),
-                            )
-                        }
-                        if (postView.post.featured_community) {
-                            DotSpacer(0.dp)
-                            Icon(
-                                imageVector = Icons.Outlined.PushPin,
-                                contentDescription = stringResource(R.string.postListing_featuredCommunity),
-                                tint = MaterialTheme.colorScheme.secondary,
-                                modifier = Modifier.size(ACTION_BAR_ICON_SIZE),
-                            )
-                        }
-                        if (postView.post.locked) {
-                            DotSpacer(0.dp)
-                            Icon(
-                                imageVector = Icons.Outlined.CommentsDisabled,
-                                contentDescription = stringResource(R.string.postListing_locked),
-                                tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(ACTION_BAR_ICON_SIZE),
-                            )
-                        }
-                    }
+                    DotSpacer(0.dp, MaterialTheme.typography.bodyMedium)
+                    TimeAgo(published = postView.post.published, updated = postView.post.updated)
                 }
             }
-            ScoreAndTime(
-                score = score,
-                myVote = myVote,
-                published = postView.post.published,
-                updated = postView.post.updated,
-            )
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(XXL_PADDING)
+            ) {
+                ActionBarButton(
+                    icon = if (postView.saved) {
+                        Icons.Filled.Bookmark
+                    } else {
+                        Icons.Outlined.BookmarkBorder
+                    },
+                    contentDescription = if (postView.saved) {
+                        stringResource(R.string.removeBookmark)
+                    } else {
+                        stringResource(R.string.addBookmark)
+                    },
+                    onClick = { onSaveClick(postView) },
+                    contentColor = if (postView.saved) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onBackground.muted
+                    },
+                    account = account,
+                )
+                ActionBarButton(
+                    icon = Icons.Outlined.MoreVert,
+                    contentDescription = stringResource(R.string.moreOptions),
+                    account = account,
+                    onClick = { showMoreOptions = !showMoreOptions },
+                    requiresAccount = false,
+                )
+            }
         }
         Row {
             if (postView.post.deleted) {
@@ -222,6 +302,7 @@ fun PostHeaderLinePreview() {
         onCommunityClick = {},
         onPersonClick = {},
         showAvatar = true,
+        account = null,
     )
 }
 
@@ -438,56 +519,11 @@ fun PostFooterLine(
     onUpvoteClick: (postView: PostView) -> Unit,
     onDownvoteClick: (postView: PostView) -> Unit,
     onReplyClick: (postView: PostView) -> Unit,
-    onSaveClick: (postView: PostView) -> Unit,
-    onEditPostClick: (postView: PostView) -> Unit,
-    onDeletePostClick: (postView: PostView) -> Unit,
-    onReportClick: (postView: PostView) -> Unit,
-    onCommunityClick: (community: CommunitySafe) -> Unit,
-    onPersonClick: (personId: Int) -> Unit,
-    onBlockCreatorClick: (person: PersonSafe) -> Unit,
-    onBlockCommunityClick: (community: CommunitySafe) -> Unit,
     modifier: Modifier = Modifier,
     showReply: Boolean = false,
     account: Account?,
     enableDownVotes: Boolean,
 ) {
-    var showMoreOptions by remember { mutableStateOf(false) }
-
-    if (showMoreOptions) {
-        PostOptionsDialog(
-            postView = postView,
-            onDismissRequest = { showMoreOptions = false },
-            onEditPostClick = {
-                showMoreOptions = false
-                onEditPostClick(postView)
-            },
-            onDeletePostClick = {
-                showMoreOptions = false
-                onDeletePostClick(postView)
-            },
-            onCommunityClick = {
-                showMoreOptions = false
-                onCommunityClick(postView.community)
-            },
-            onPersonClick = {
-                showMoreOptions = false
-                onPersonClick(postView.creator.id)
-            },
-            onReportClick = {
-                showMoreOptions = false
-                onReportClick(postView)
-            },
-            onBlockCommunityClick = {
-                showMoreOptions = false
-                onBlockCommunityClick(postView.community)
-            },
-            onBlockCreatorClick = {
-                showMoreOptions = false
-                onBlockCreatorClick(postView.creator)
-            },
-            isCreator = account?.id == postView.creator.id,
-        )
-    }
 
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -496,66 +532,31 @@ fun PostFooterLine(
             .fillMaxWidth()
             .padding(bottom = SMALL_PADDING),
     ) {
+        VoteDisplay(
+            upVotes = instantScores.upvotes,
+            downVotes = instantScores.downvotes,
+            account = account,
+            onVote = {
+                when (it) {
+                    VoteType.Upvote -> onUpvoteClick(postView)
+                    VoteType.Downvote -> onDownvoteClick(postView)
+                }
+            },
+            enableDownVotes = enableDownVotes,
+            myVote = instantScores.myVote,
+            // showVotes = (instantScores.downvotes != 0)
+        )
         CommentCount(
             comments = postView.counts.comments,
             unreadCount = postView.unread_comments,
             account = account,
         )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(XXL_PADDING),
-        ) {
-            VoteGeneric(
-                myVote = instantScores.myVote,
-                votes = instantScores.upvotes,
-                item = postView,
-                type = VoteType.Upvote,
-                showNumber = (instantScores.downvotes != 0),
-                onVoteClick = onUpvoteClick,
-                account = account,
-            )
-            if (enableDownVotes) {
-                VoteGeneric(
-                    myVote = instantScores.myVote,
-                    votes = instantScores.downvotes,
-                    item = postView,
-                    type = VoteType.Downvote,
-                    onVoteClick = onDownvoteClick,
-                    account = account,
-                )
-            }
+        if (showReply) {
             ActionBarButton(
-                icon = if (postView.saved) {
-                    Icons.Filled.Bookmark
-                } else {
-                    Icons.Outlined.BookmarkBorder
-                },
-                contentDescription = if (postView.saved) {
-                    stringResource(R.string.removeBookmark)
-                } else {
-                    stringResource(R.string.addBookmark)
-                },
-                onClick = { onSaveClick(postView) },
-                contentColor = if (postView.saved) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onBackground.muted
-                },
+                icon = Icons.Outlined.Textsms,
+                contentDescription = stringResource(R.string.postListing_reply),
+                onClick = { onReplyClick(postView) },
                 account = account,
-            )
-            if (showReply) {
-                ActionBarButton(
-                    icon = Icons.Outlined.Textsms,
-                    contentDescription = stringResource(R.string.postListing_reply),
-                    onClick = { onReplyClick(postView) },
-                    account = account,
-                )
-            }
-            ActionBarButton(
-                icon = Icons.Outlined.MoreVert,
-                contentDescription = stringResource(R.string.moreOptions),
-                account = account,
-                onClick = { showMoreOptions = !showMoreOptions },
-                requiresAccount = false,
             )
         }
     }
@@ -630,17 +631,9 @@ fun PostFooterLinePreview() {
         postView = postView,
         instantScores = instantScores,
         account = null,
-        onReportClick = {},
-        onCommunityClick = {},
-        onPersonClick = {},
         onUpvoteClick = {},
-        onSaveClick = {},
         onReplyClick = {},
         onDownvoteClick = {},
-        onEditPostClick = {},
-        onDeletePostClick = {},
-        onBlockCreatorClick = {},
-        onBlockCommunityClick = {},
         enableDownVotes = true,
     )
 }
@@ -1213,6 +1206,13 @@ fun PostListingCard(
             showCommunityName = showCommunityName,
             modifier = Modifier.padding(horizontal = MEDIUM_PADDING),
             showAvatar = showAvatar,
+            account = account,
+            onSaveClick = onSaveClick,
+            onEditPostClick = onEditPostClick,
+            onDeletePostClick = onDeletePostClick,
+            onReportClick = onReportClick,
+            onBlockCommunityClick = onBlockCommunityClick,
+            onBlockCreatorClick = onBlockCreatorClick,
         )
 
         //  Title + metadata
@@ -1229,15 +1229,7 @@ fun PostListingCard(
             instantScores = instantScores,
             onUpvoteClick = onUpvoteClick,
             onDownvoteClick = onDownvoteClick,
-            onSaveClick = onSaveClick,
             onReplyClick = onReplyClick,
-            onCommunityClick = onCommunityClick,
-            onPersonClick = onPersonClick,
-            onEditPostClick = onEditPostClick,
-            onDeletePostClick = onDeletePostClick,
-            onReportClick = onReportClick,
-            onBlockCommunityClick = onBlockCommunityClick,
-            onBlockCreatorClick = onBlockCreatorClick,
             showReply = showReply,
             account = account,
             modifier = Modifier.padding(horizontal = MEDIUM_PADDING),

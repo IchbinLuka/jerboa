@@ -47,6 +47,7 @@ import com.jerboa.ui.components.comment.PostAndCommunityContextHeader
 import com.jerboa.ui.components.common.ActionBarButton
 import com.jerboa.ui.components.common.CommentOrPostNodeHeader
 import com.jerboa.ui.components.common.IconAndTextDrawerItem
+import com.jerboa.ui.components.common.VoteDisplay
 import com.jerboa.ui.components.common.VoteGeneric
 import com.jerboa.ui.theme.LARGE_PADDING
 import com.jerboa.ui.theme.SMALL_PADDING
@@ -147,22 +148,18 @@ fun CommentMentionNodeFooterLine(
         Row(
             horizontalArrangement = Arrangement.spacedBy(XXL_PADDING),
         ) {
-            VoteGeneric(
-                myVote = myVote,
-                votes = upvotes,
-                item = personMentionView,
-                type = VoteType.Upvote,
-                onVoteClick = onUpvoteClick,
-                showNumber = (downvotes != 0),
+            VoteDisplay(
+                upVotes = upvotes,
+                downVotes = downvotes,
                 account = account,
-            )
-            VoteGeneric(
+                onVote = {
+                    when (it) {
+                        VoteType.Upvote -> onUpvoteClick(personMentionView)
+                        VoteType.Downvote -> onDownvoteClick(personMentionView)
+                    }
+                },
+                enableDownVotes = true,
                 myVote = myVote,
-                votes = downvotes,
-                item = personMentionView,
-                type = VoteType.Downvote,
-                onVoteClick = onDownvoteClick,
-                account = account,
             )
             ActionBarButton(
                 icon = Icons.Outlined.Link,

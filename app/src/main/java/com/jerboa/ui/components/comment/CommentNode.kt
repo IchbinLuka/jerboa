@@ -79,6 +79,7 @@ import com.jerboa.ui.components.common.CommentOrPostNodeHeader
 import com.jerboa.ui.components.common.IconAndTextDrawerItem
 import com.jerboa.ui.components.common.MarkdownHelper
 import com.jerboa.ui.components.common.MyMarkdownText
+import com.jerboa.ui.components.common.VoteDisplay
 import com.jerboa.ui.components.common.VoteGeneric
 import com.jerboa.ui.components.community.CommunityLink
 import com.jerboa.ui.theme.LARGE_PADDING
@@ -559,25 +560,19 @@ fun CommentFooterLine(
         Row(
             horizontalArrangement = Arrangement.spacedBy(XXL_PADDING),
         ) {
-            VoteGeneric(
-                myVote = instantScores.myVote,
-                votes = instantScores.upvotes,
-                item = commentView,
-                type = VoteType.Upvote,
-                onVoteClick = onUpvoteClick,
-                showNumber = (instantScores.downvotes != 0),
+            VoteDisplay(
+                upVotes = instantScores.upvotes,
+                downVotes = instantScores.downvotes,
                 account = account,
+                onVote = {
+                    when (it) {
+                        VoteType.Upvote -> onUpvoteClick(commentView)
+                        VoteType.Downvote -> onDownvoteClick(commentView)
+                    }
+                },
+                enableDownVotes = enableDownVotes,
+                myVote = instantScores.myVote,
             )
-            if (enableDownVotes) {
-                VoteGeneric(
-                    myVote = instantScores.myVote,
-                    votes = instantScores.downvotes,
-                    item = commentView,
-                    type = VoteType.Downvote,
-                    onVoteClick = onDownvoteClick,
-                    account = account,
-                )
-            }
             ActionBarButton(
                 icon = if (commentView.saved) { Icons.Filled.Bookmark } else {
                     Icons.Outlined.BookmarkBorder

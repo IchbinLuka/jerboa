@@ -1,9 +1,14 @@
 package com.jerboa.ui.components.common
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -98,10 +103,12 @@ fun VoteDisplay(
     showVotes: Boolean = true,
     myVote: Int? = null,
     account: Account?,
-    onVote: (VoteType) -> Unit
+    onVote: (VoteType) -> Unit,
+    enableDownVotes: Boolean = true
 ) {
     Row {
         val iconColorUpvote = upvoteIconAndColor(myVote = myVote)
+        val iconColorDownvote = downvoteIconAndColor(myVote = myVote)
         ActionBarButton(
             onClick = { onVote(VoteType.Upvote) },
             icon = iconColorUpvote.first,
@@ -109,18 +116,24 @@ fun VoteDisplay(
             contentDescription = "",
             account = account
         )
-
+        
         Text(
-            text = if (showVotes) (upVotes - downVotes).toString() else "Vote" // TODO: theming, translation
+            text = if (showVotes) (upVotes - downVotes).toString() else "Vote",
+            color = scoreColor(myVote = myVote),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(horizontal = ButtonDefaults.IconSpacing)
         )
 
-        val iconColorDownvote = downvoteIconAndColor(myVote = myVote)
-        ActionBarButton(
-            onClick = { onVote(VoteType.Downvote) },
-            icon = iconColorDownvote.first,
-            contentColor = iconColorDownvote.second,
-            contentDescription = "",
-            account = account
-        )
+
+        if (enableDownVotes) {
+
+            ActionBarButton(
+                onClick = { onVote(VoteType.Downvote) },
+                icon = iconColorDownvote.first,
+                contentColor = iconColorDownvote.second,
+                contentDescription = "",
+                account = account
+            )
+        }
     }
 }
