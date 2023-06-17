@@ -1,6 +1,8 @@
 package com.jerboa.ui.components.common
 
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -62,11 +64,11 @@ fun <T> VoteGeneric(
 fun upvoteIconAndColor(myVote: Int?): Pair<ImageVector, Color> {
     return when (myVote) {
         1 -> Pair(
-            ImageVector.vectorResource(id = R.drawable.up_filled),
+            ImageVector.vectorResource(id = R.drawable.upvote_filled),
             scoreColor(myVote = myVote),
         )
         else -> Pair(
-            ImageVector.vectorResource(id = R.drawable.up_outline),
+            ImageVector.vectorResource(id = R.drawable.upvote_outline),
             MaterialTheme
                 .colorScheme.onBackground.muted,
         )
@@ -77,13 +79,48 @@ fun upvoteIconAndColor(myVote: Int?): Pair<ImageVector, Color> {
 fun downvoteIconAndColor(myVote: Int?): Pair<ImageVector, Color> {
     return when (myVote) {
         -1 -> Pair(
-            ImageVector.vectorResource(id = R.drawable.down_filled),
+            ImageVector.vectorResource(id = R.drawable.downvote_filled),
             scoreColor(myVote = myVote),
         )
         else -> Pair(
-            ImageVector.vectorResource(id = R.drawable.down_outline),
+            ImageVector.vectorResource(id = R.drawable.downvote_outline),
             MaterialTheme
                 .colorScheme.onBackground.muted,
+        )
+    }
+}
+
+
+@Composable
+fun VoteDisplay(
+    upVotes: Int,
+    downVotes: Int,
+    showVotes: Boolean = true,
+    myVote: Int? = null,
+    account: Account?,
+    onVote: (VoteType) -> Unit
+) {
+    Row {
+        val iconColorUpvote = upvoteIconAndColor(myVote = myVote)
+        ActionBarButton(
+            onClick = { onVote(VoteType.Upvote) },
+            icon = iconColorUpvote.first,
+            contentColor = iconColorUpvote.second,
+            contentDescription = "",
+            account = account
+        )
+
+        Text(
+            text = if (showVotes) (upVotes - downVotes).toString() else "Vote" // TODO: theming, translation
+        )
+
+        val iconColorDownvote = downvoteIconAndColor(myVote = myVote)
+        ActionBarButton(
+            onClick = { onVote(VoteType.Downvote) },
+            icon = iconColorDownvote.first,
+            contentColor = iconColorDownvote.second,
+            contentDescription = "",
+            account = account
         )
     }
 }
