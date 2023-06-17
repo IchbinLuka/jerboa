@@ -546,7 +546,7 @@ fun CommentFooterLine(
     }
 
     Row(
-        horizontalArrangement = Arrangement.End,
+        horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = LARGE_PADDING, bottom = SMALL_PADDING)
@@ -557,22 +557,22 @@ fun CommentFooterLine(
                 onLongClick = onLongClick,
             ),
     ) {
+        VoteDisplay(
+            upVotes = instantScores.upvotes,
+            downVotes = instantScores.downvotes,
+            account = account,
+            onVote = {
+                when (it) {
+                    VoteType.Upvote -> onUpvoteClick(commentView)
+                    VoteType.Downvote -> onDownvoteClick(commentView)
+                }
+            },
+            enableDownVotes = enableDownVotes,
+            myVote = instantScores.myVote,
+        )
         Row(
             horizontalArrangement = Arrangement.spacedBy(XXL_PADDING),
         ) {
-            VoteDisplay(
-                upVotes = instantScores.upvotes,
-                downVotes = instantScores.downvotes,
-                account = account,
-                onVote = {
-                    when (it) {
-                        VoteType.Upvote -> onUpvoteClick(commentView)
-                        VoteType.Downvote -> onDownvoteClick(commentView)
-                    }
-                },
-                enableDownVotes = enableDownVotes,
-                myVote = instantScores.myVote,
-            )
             ActionBarButton(
                 icon = if (commentView.saved) { Icons.Filled.Bookmark } else {
                     Icons.Outlined.BookmarkBorder

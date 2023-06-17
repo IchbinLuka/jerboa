@@ -140,27 +140,28 @@ fun CommentReplyNodeFooterLine(
     }
 
     Row(
-        horizontalArrangement = Arrangement.End,
+        horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = LARGE_PADDING, bottom = SMALL_PADDING),
     ) {
+        VoteDisplay(
+            upVotes = upvotes,
+            downVotes = downvotes,
+            account = account,
+            onVote = {
+                when (it) {
+                    VoteType.Upvote -> onUpvoteClick(commentReplyView)
+                    VoteType.Downvote -> onDownvoteClick(commentReplyView)
+                }
+            },
+            enableDownVotes = true,
+            myVote = myVote,
+        )
         Row(
             horizontalArrangement = Arrangement.spacedBy(XXL_PADDING),
         ) {
-            VoteDisplay(
-                upVotes = upvotes,
-                downVotes = downvotes,
-                account = account,
-                onVote = {
-                    when (it) {
-                        VoteType.Upvote -> onUpvoteClick(commentReplyView)
-                        VoteType.Downvote -> onDownvoteClick(commentReplyView)
-                    }
-                },
-                enableDownVotes = true,
-                myVote = myVote,
-            )
+
             ActionBarButton(
                 icon = Icons.Outlined.Link,
                 contentDescription = stringResource(R.string.commentReply_link),
