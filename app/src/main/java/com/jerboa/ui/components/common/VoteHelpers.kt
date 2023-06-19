@@ -8,6 +8,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -106,7 +107,9 @@ fun VoteDisplay(
     onVote: (VoteType) -> Unit,
     enableDownVotes: Boolean = true
 ) {
-    Row {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         val iconColorUpvote = upvoteIconAndColor(myVote = myVote)
         val iconColorDownvote = downvoteIconAndColor(myVote = myVote)
         ActionBarButton(
@@ -120,7 +123,7 @@ fun VoteDisplay(
         Text(
             text = if (showVotes) (upVotes - downVotes).toString() else "Vote",
             color = scoreColor(myVote = myVote),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.labelLarge,
             modifier = Modifier.padding(horizontal = ButtonDefaults.IconSpacing)
         )
 
