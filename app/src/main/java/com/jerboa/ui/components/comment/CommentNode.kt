@@ -22,11 +22,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.BookmarkBorder
-import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Person
@@ -181,6 +181,8 @@ fun CommentBodyPreview() {
 
 fun LazyListScope.commentNodeItem(
     node: CommentNodeData,
+    increaseLazyListIndexTracker: () -> Unit,
+    addToParentIndexes: () -> Unit,
     isFlat: Boolean,
     isExpanded: (commentId: Int) -> Boolean,
     toggleExpanded: (commentId: Int) -> Unit,
@@ -221,8 +223,14 @@ fun LazyListScope.commentNodeItem(
         XXL_PADDING
     }
 
+    if (node.depth == 0) {
+        addToParentIndexes()
+    }
+
     val showMoreChildren = isExpanded(commentId) && node.children.isNullOrEmpty() && node
         .commentView.counts.child_count > 0 && !isFlat
+
+    increaseLazyListIndexTracker()
     item(key = commentId) {
         var viewSource by remember { mutableStateOf(false) }
 
@@ -352,6 +360,7 @@ fun LazyListScope.commentNodeItem(
         }
     }
 
+    increaseLazyListIndexTracker()
     item(key = "${commentId}_show_more_children") {
         AnimatedVisibility(
             visible = showMoreChildren,
@@ -365,6 +374,8 @@ fun LazyListScope.commentNodeItem(
     node.children?.also { nodes ->
         commentNodeItems(
             nodes = nodes,
+            increaseLazyListIndexTracker = increaseLazyListIndexTracker,
+            addToParentIndexes = addToParentIndexes,
             isFlat = isFlat,
             toggleExpanded = toggleExpanded,
             toggleActionBar = toggleActionBar,
@@ -618,6 +629,8 @@ fun CommentNodesPreview() {
     val tree = buildCommentsTree(comments, false)
     CommentNodes(
         nodes = tree,
+        increaseLazyListIndexTracker = {},
+        addToParentIndexes = {},
         isFlat = false,
         isExpanded = { _ -> true },
         toggleExpanded = {},
@@ -671,7 +684,7 @@ fun CommentOptionsDialog(
             Column {
                 IconAndTextDrawerItem(
                     text = stringResource(R.string.comment_node_goto_comment),
-                    icon = Icons.Outlined.Link,
+                    icon = Icons.Outlined.Forum,
                     onClick = onCommentLinkClick,
                 )
                 IconAndTextDrawerItem(
@@ -689,7 +702,7 @@ fun CommentOptionsDialog(
                 )
                 IconAndTextDrawerItem(
                     text = stringResource(R.string.comment_node_copy_permalink),
-                    icon = Icons.Outlined.ContentCopy,
+                    icon = Icons.Outlined.Link,
                     onClick = {
                         val permalink = commentView.comment.ap_id
                         localClipboardManager.setText(AnnotatedString(permalink))

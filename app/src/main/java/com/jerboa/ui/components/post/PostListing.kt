@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -370,6 +371,7 @@ fun PostName(
         text = postView.post.name,
         style = MaterialTheme.typography.titleLarge,
         color = color,
+        modifier = Modifier.testTag("jerboa:posttitle"),
     )
 }
 
@@ -976,7 +978,7 @@ fun PostListingList(
         modifier = Modifier.padding(
             horizontal = MEDIUM_PADDING,
             vertical = MEDIUM_PADDING,
-        ),
+        ).testTag("jerboa:post"),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -1191,7 +1193,8 @@ fun PostListingCard(
     Column(
         modifier = Modifier
             .padding(vertical = MEDIUM_PADDING)
-            .clickable { onPostClick(postView) },
+            .clickable { onPostClick(postView) }
+            .testTag("jerboa:post"),
         verticalArrangement = Arrangement.spacedBy(LARGE_PADDING),
     ) {
         // Header

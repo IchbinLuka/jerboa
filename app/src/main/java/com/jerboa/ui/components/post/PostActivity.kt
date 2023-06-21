@@ -1,8 +1,11 @@
 package com.jerboa.ui.components.post
 
 import android.util.Log
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -23,16 +26,27 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.navigation.NavController
 import com.jerboa.PostViewMode
 import com.jerboa.R
@@ -54,12 +68,15 @@ import com.jerboa.getDepthFromComment
 import com.jerboa.getLocalizedCommentSortTypeName
 import com.jerboa.isModerator
 import com.jerboa.newVote
+import com.jerboa.scrollToNextParentComment
+import com.jerboa.scrollToPreviousParentComment
 import com.jerboa.ui.components.comment.ShowCommentContextButtons
 import com.jerboa.ui.components.comment.commentNodeItems
 import com.jerboa.ui.components.comment.edit.CommentEditViewModel
 import com.jerboa.ui.components.comment.reply.CommentReplyViewModel
 import com.jerboa.ui.components.comment.reply.ReplyItem
 import com.jerboa.ui.components.common.ApiErrorText
+import com.jerboa.ui.components.common.CommentNavigationBottomAppBar
 import com.jerboa.ui.components.common.CommentSortOptionsDialog
 import com.jerboa.ui.components.common.LoadingBar
 import com.jerboa.ui.components.common.getCurrentAccount
@@ -67,6 +84,7 @@ import com.jerboa.ui.components.common.simpleVerticalScrollbar
 import com.jerboa.ui.components.home.SiteViewModel
 import com.jerboa.ui.components.post.edit.PostEditViewModel
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun CommentsHeaderTitle(
     selectedSortType: CommentSortType,
@@ -85,7 +103,11 @@ fun CommentsHeaderTitle(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalMaterialApi::class,
+    ExperimentalMaterial3Api::class,
+    ExperimentalComposeUiApi::class,
+)
 @Composable
 fun PostActivity(
     postViewModel: PostViewModel,
@@ -98,6 +120,8 @@ fun PostActivity(
     showCollapsedCommentContent: Boolean,
     showActionBarByDefault: Boolean,
     showVotingArrowsInListView: Boolean,
+    showParentCommentNavigationButtons: Boolean,
+    navigateParentCommentsWithVolumeButtons: Boolean,
     onClickSortType: (CommentSortType) -> Unit,
     selectedSortType: CommentSortType,
 ) {
@@ -113,9 +137,13 @@ fun PostActivity(
     val unExpandedComments = remember { mutableStateListOf<Int>() }
     val commentsWithToggledActionBar = remember { mutableStateListOf<Int>() }
     var showSortOptions by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
 
     val listState = rememberLazyListState()
+    var lazyListIndexTracker: Int
+    val parentListStateIndexes = remember { mutableListOf<Int>() }
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val scope = rememberCoroutineScope()
 
     val pullRefreshState = rememberPullRefreshState(
         refreshing = postLoading,
@@ -135,8 +163,44 @@ fun PostActivity(
         )
     }
 
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+            .semantics { testTagsAsResourceId = true }
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+            .focusRequester(focusRequester)
+            .focusable()
+            .onKeyEvent { keyEvent ->
+                if (navigateParentCommentsWithVolumeButtons) {
+                    when (keyEvent.key) {
+                        Key.VolumeUp -> {
+                            scrollToPreviousParentComment(scope, parentListStateIndexes, listState)
+                            true
+                        }
+                        Key.VolumeDown -> {
+                            scrollToNextParentComment(scope, parentListStateIndexes, listState)
+                            true
+                        }
+                        else -> {
+                            false
+                        }
+                    }
+                } else {
+                    false
+                }
+            },
+        bottomBar = {
+            if (showParentCommentNavigationButtons) {
+                CommentNavigationBottomAppBar(
+                    scope,
+                    parentListStateIndexes,
+                    listState,
+                )
+            }
+        },
         topBar = {
             Column {
                 TopAppBar(
@@ -146,7 +210,10 @@ fun PostActivity(
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = { navController.popBackStack() }) {
+                        IconButton(
+                            modifier = Modifier.testTag("jerboa:back"),
+                            onClick = { navController.popBackStack() },
+                        ) {
                             Icon(
                                 Icons.Outlined.ArrowBack,
                                 contentDescription = stringResource(R.string.topAppBar_back),
@@ -169,6 +236,8 @@ fun PostActivity(
         },
         content = { padding ->
             Box(modifier = Modifier.pullRefresh(pullRefreshState)) {
+                parentListStateIndexes.clear()
+                lazyListIndexTracker = 2
                 PullRefreshIndicator(
                     postLoading,
                     pullRefreshState,
@@ -184,8 +253,9 @@ fun PostActivity(
                         LazyColumn(
                             state = listState,
                             modifier = Modifier
-                                .padding(padding)
-                                .simpleVerticalScrollbar(listState),
+                                .padding(top = padding.calculateTopPadding())
+                                .simpleVerticalScrollbar(listState)
+                                .testTag("jerboa:comments"),
                         ) {
                             item(key = "${postView.post.id}_listing") {
                                 PostListing(
@@ -358,6 +428,12 @@ fun PostActivity(
 
                                     commentNodeItems(
                                         nodes = commentTree,
+                                        increaseLazyListIndexTracker = {
+                                            lazyListIndexTracker++
+                                        },
+                                        addToParentIndexes = {
+                                            parentListStateIndexes.add(lazyListIndexTracker)
+                                        },
                                         isFlat = false,
                                         isExpanded = { commentId ->
                                             !unExpandedComments.contains(
@@ -486,6 +562,11 @@ fun PostActivity(
                                 }
 
                                 else -> {}
+                            }
+                            if (showParentCommentNavigationButtons) {
+                                item {
+                                    Spacer(modifier = Modifier.height(padding.calculateBottomPadding()))
+                                }
                             }
                         }
                     }
