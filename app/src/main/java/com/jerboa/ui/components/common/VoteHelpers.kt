@@ -17,6 +17,7 @@ import androidx.compose.ui.res.vectorResource
 import com.jerboa.R
 import com.jerboa.VoteType
 import com.jerboa.db.Account
+import com.jerboa.getVoteString
 import com.jerboa.ui.theme.muted
 
 @Composable
@@ -121,7 +122,7 @@ fun VoteDisplay(
         )
         
         Text(
-            text = if (showVotes) (upVotes - downVotes).toString() else "Vote",
+            text = if (showVotes) getVoteString(upVotes - downVotes) else "Vote",
             color = scoreColor(myVote = myVote),
             style = MaterialTheme.typography.labelLarge,
             modifier = Modifier.padding(horizontal = ButtonDefaults.IconSpacing)

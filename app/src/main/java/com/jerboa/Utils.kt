@@ -1213,3 +1213,11 @@ fun scrollToPreviousParentComment(
             }
     }
 }
+
+fun getVoteString(votes: Int): String = if (votes < 1000) {
+    votes.toString()
+} else if (votes < 1_000_000) {
+    "%.2fK".format((votes / 1000.0))
+} else {
+    "%.2fM".format((votes / 1_000_000.0))
+}
