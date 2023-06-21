@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -331,7 +332,9 @@ fun ActionBarButton(
             } else {
                 loginFirstToast(ctx)
             }
-        })
+        },
+        interactionSource = remember { MutableInteractionSource() },
+        indication = rememberRipple(radius = 20.dp, bounded = false))
     }
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -585,5 +588,7 @@ fun Modifier.simpleVerticalScrollbar(
 fun LoadingBar(
     padding: PaddingValues = PaddingValues(0.dp),
 ) {
-    LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(padding))
+    LinearProgressIndicator(modifier = Modifier
+        .fillMaxWidth()
+        .padding(padding))
 }
