@@ -121,7 +121,14 @@ class UtilsKtTest {
         assertEquals(
             "http://localhost:8535/pictrs/image/file.png?thumbnail=3&format=webp",
             pictrsImageThumbnail(
-                "http://localhost:8535/pictrs/image/file.png?thumbnail=3&format=webp",
+                "http://localhost:8535/pictrs/image/file.png",
+                3,
+            ),
+        )
+        assertEquals(
+            "http://localhost:8535/pictrs/image/file.png?thumbnail=3&format=webp",
+            pictrsImageThumbnail(
+                "http://localhost:8535/pictrs/image/file.png?thumbnail=256&format=jpg",
                 3,
             ),
         )
@@ -171,5 +178,15 @@ class UtilsKtTest {
 
         val durationString = formatDuration(date, true)
         assertEquals("1 day", durationString)
+    }
+
+    @Test
+    fun compareVersions() {
+        assertEquals(-1, compareVersions("0.0.1", "0.0.2"))
+        assertEquals(1, compareVersions("0.0.10", "0.0.2"))
+        assertEquals(1, compareVersions("0.1.10", "0.1.2"))
+        assertEquals(0, compareVersions("0.1.2", "0.1.2"))
+        assertEquals(-1, compareVersions("0.1.2-alpha1", "0.1.2-beta1"))
+        assertEquals(1, compareVersions("0.1.2-beta1", "0.1.2-alpha2"))
     }
 }

@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.core.util.PatternsCompat
 import androidx.navigation.NavController
+import arrow.core.compareTo
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.jerboa.api.API
@@ -55,6 +56,7 @@ import com.jerboa.datatypes.types.*
 import com.jerboa.db.Account
 import com.jerboa.ui.components.home.HomeViewModel
 import com.jerboa.ui.components.home.SiteViewModel
+import com.jerboa.ui.components.inbox.InboxTab
 import com.jerboa.ui.components.person.UserTab
 import com.jerboa.ui.theme.SMALL_PADDING
 import kotlinx.coroutines.CoroutineScope
@@ -447,11 +449,14 @@ fun pictrsImageThumbnail(src: String, thumbnailSize: Int): String {
     }
 
     val host = split[0]
+    var path = split[1]
     // eliminate the query param portion of the path so we can replace it later
     // without this, we'd end up with something like host/path?thumbnail=...?thumbnail=...
-    val path = split[1].replaceAfter('?', "", "${split[1]}?")
+    if ("?" in path) {
+        path = path.replaceAfter('?', "").dropLast(1)
+    }
 
-    return "$host/pictrs/image/${path}thumbnail=$thumbnailSize&format=webp"
+    return "$host/pictrs/image/$path?thumbnail=$thumbnailSize&format=webp"
 }
 
 fun isImage(url: String): Boolean {
@@ -1037,6 +1042,18 @@ fun getLocalizedUnreadOrAllName(ctx: Context, unreadOrAll: UnreadOrAll): String 
     return returnString
 }
 
+/**
+ * Returns localized Strings for InboxTab Enum
+ */
+fun getLocalizedStringForInboxTab(ctx: Context, tab: InboxTab): String {
+    val returnString = when (tab) {
+        InboxTab.Replies -> ctx.getString(R.string.inbox_activity_replies)
+        InboxTab.Mentions -> ctx.getString(R.string.inbox_activity_mentions)
+        InboxTab.Messages -> ctx.getString(R.string.inbox_activity_messages)
+    }
+    return returnString
+}
+
 fun findAndUpdatePrivateMessage(
     messages: List<PrivateMessageView>,
     updated: PrivateMessageView,
@@ -1220,4 +1237,22 @@ fun getVoteString(votes: Int): String = if (votes < 1000) {
     "%.2fK".format((votes / 1000.0))
 } else {
     "%.2fM".format((votes / 1_000_000.0))
+}
+
+/**
+ * Compare two version strings.
+ *
+ * This attempts to do a natural comparison assuming it's a typical semver (e.g. x.y.z),
+ * but it ignores anything it doesn't understand. Since we're highly confident that these verisons
+ * will be properly formed, this is safe enough without overcomplicating it.
+ */
+fun compareVersions(a: String, b: String): Int {
+    val versionA: List<Int> = a.split('.').mapNotNull { it.toIntOrNull() }
+    val versionB: List<Int> = b.split('.').mapNotNull { it.toIntOrNull() }
+
+    val comparison = versionA.compareTo(versionB)
+    if (comparison == 0) {
+        return a.compareTo(b)
+    }
+    return comparison
 }
