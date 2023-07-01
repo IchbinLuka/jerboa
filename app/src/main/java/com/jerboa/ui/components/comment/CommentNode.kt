@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Edit
@@ -60,6 +61,7 @@ import com.jerboa.border
 import com.jerboa.buildCommentsTree
 import com.jerboa.calculateCommentOffset
 import com.jerboa.calculateNewInstantScores
+import com.jerboa.copyToClipboard
 import com.jerboa.datatypes.sampleCommentView
 import com.jerboa.datatypes.sampleCommunity
 import com.jerboa.datatypes.samplePost
@@ -212,6 +214,7 @@ fun LazyListScope.commentNodeItem(
     showActionBar: (commentId: Int) -> Boolean,
     enableDownVotes: Boolean,
     showAvatar: Boolean,
+    blurNSFW: Boolean,
 ) {
     val commentView = node.commentView
     val commentId = commentView.comment.id
@@ -276,6 +279,7 @@ fun LazyListScope.commentNodeItem(
                                 community = commentView.community,
                                 onCommunityClick = onCommunityClick,
                                 onPostClick = onPostClick,
+                                blurNSFW = blurNSFW,
                             )
                         }
                         CommentNodeHeader(
@@ -405,6 +409,7 @@ fun LazyListScope.commentNodeItem(
             showActionBar = showActionBar,
             enableDownVotes = enableDownVotes,
             showAvatar = showAvatar,
+            blurNSFW = blurNSFW,
         )
     }
 }
@@ -463,6 +468,7 @@ fun PostAndCommunityContextHeader(
     community: Community,
     onCommunityClick: (community: Community) -> Unit,
     onPostClick: (postId: Int) -> Unit,
+    blurNSFW: Boolean,
 ) {
     Column(
         modifier = Modifier.padding(top = LARGE_PADDING),
@@ -480,6 +486,7 @@ fun PostAndCommunityContextHeader(
                 community = community,
                 onClick = onCommunityClick,
                 showDefaultIcon = false,
+                blurNSFW = blurNSFW,
             )
         }
     }
@@ -493,6 +500,7 @@ fun PostAndCommunityContextHeaderPreview() {
         community = sampleCommunity,
         onCommunityClick = {},
         onPostClick = {},
+        blurNSFW = true,
     )
 }
 
@@ -659,6 +667,7 @@ fun CommentNodesPreview() {
         showActionBar = { _ -> true },
         enableDownVotes = true,
         showAvatar = true,
+        blurNSFW = true,
     )
 }
 
@@ -711,6 +720,18 @@ fun CommentOptionsDialog(
                             ctx.getString(R.string.comment_node_permalink_copied),
                             Toast.LENGTH_SHORT,
                         ).show()
+                        onDismissRequest()
+                    },
+                )
+                IconAndTextDrawerItem(
+                    text = stringResource(R.string.comment_node_copy_comment),
+                    icon = Icons.Outlined.ContentCopy,
+                    onClick = {
+                        if (copyToClipboard(ctx, commentView.comment.content, "comment")) {
+                            Toast.makeText(ctx, ctx.getString(R.string.comment_node_comment_copied), Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(ctx, ctx.getString(R.string.generic_error), Toast.LENGTH_SHORT).show()
+                        }
                         onDismissRequest()
                     },
                 )

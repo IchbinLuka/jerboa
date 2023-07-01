@@ -306,6 +306,7 @@ fun CommentReplyNode(
     onBlockCreatorClick: (creator: Person) -> Unit,
     account: Account?,
     showAvatar: Boolean,
+    blurNSFW: Boolean,
 ) {
     // These are necessary for instant comment voting
     val score = commentReplyView.counts.score
@@ -326,6 +327,7 @@ fun CommentReplyNode(
             community = commentReplyView.community,
             onCommunityClick = onCommunityClick,
             onPostClick = onPostClick,
+            blurNSFW = blurNSFW,
         )
         CommentReplyNodeHeader(
             commentReplyView = commentReplyView,

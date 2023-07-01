@@ -51,6 +51,9 @@ fun PostListings(
     showVotingArrowsInListView: Boolean,
     enableDownVotes: Boolean,
     showAvatar: Boolean,
+    useCustomTabs: Boolean,
+    usePrivateTabs: Boolean,
+    blurNSFW: Boolean,
 ) {
     LazyColumn(
         state = listState,
@@ -91,6 +94,9 @@ fun PostListings(
                 showVotingArrowsInListView = showVotingArrowsInListView,
                 enableDownVotes = enableDownVotes,
                 showAvatar = showAvatar,
+                useCustomTabs = useCustomTabs,
+                usePrivateTabs = usePrivateTabs,
+                blurNSFW = blurNSFW,
             )
             Divider(modifier = Modifier.padding(bottom = SMALL_PADDING))
         }
@@ -134,5 +140,8 @@ fun PreviewPostListings() {
         showVotingArrowsInListView = true,
         enableDownVotes = true,
         showAvatar = true,
+        useCustomTabs = false,
+        usePrivateTabs = false,
+        blurNSFW = true,
     )
 }
