@@ -134,6 +134,8 @@ fun PostHeaderLine(
     onDeletePostClick: (postView: PostView) -> Unit = {},
     onReportClick: (postView: PostView) -> Unit = {},
     blurNSFW: Boolean,
+    onViewSourceClick: () -> Unit,
+    viewSource: Boolean,
 ) {
     var showMoreOptions by remember { mutableStateOf(false) }
 
@@ -170,6 +172,8 @@ fun PostHeaderLine(
                 onBlockCreatorClick(postView.creator)
             },
             isCreator = account?.id == postView.creator.id,
+            onViewSourceClick = onViewSourceClick,
+            viewSource = viewSource
         )
     }
 
@@ -312,6 +316,8 @@ fun PostHeaderLinePreview() {
         showAvatar = true,
         account = null,
         blurNSFW = true,
+        onViewSourceClick = {},
+        viewSource = false
     )
 }
 
@@ -579,21 +585,10 @@ fun PostFooterLine(
     onUpvoteClick: (postView: PostView) -> Unit,
     onDownvoteClick: (postView: PostView) -> Unit,
     onReplyClick: (postView: PostView) -> Unit,
-    onViewSourceClick: () -> Unit,
-    onSaveClick: (postView: PostView) -> Unit,
-    onEditPostClick: (postView: PostView) -> Unit,
-    onDeletePostClick: (postView: PostView) -> Unit,
-    onReportClick: (postView: PostView) -> Unit,
-    onCommunityClick: (community: Community) -> Unit,
-    onPersonClick: (personId: Int) -> Unit,
-    onBlockCreatorClick: (person: Person) -> Unit,
-    onBlockCommunityClick: (community: Community) -> Unit,
-    onViewSourceClick: () -> Unit,
     modifier: Modifier = Modifier,
     showReply: Boolean = false,
     account: Account?,
     enableDownVotes: Boolean,
-    viewSource: Boolean,
 ) {
 
     Row(
@@ -705,13 +700,7 @@ fun PostFooterLinePreview() {
         onUpvoteClick = {},
         onReplyClick = {},
         onDownvoteClick = {},
-        onEditPostClick = {},
-        onDeletePostClick = {},
-        onBlockCreatorClick = {},
-        onBlockCommunityClick = {},
-        onViewSourceClick = {},
         enableDownVotes = true,
-        viewSource = false,
     )
 }
 
@@ -1365,6 +1354,8 @@ fun PostListingCard(
             onReportClick = onReportClick,
             onBlockCommunityClick = onBlockCommunityClick,
             onBlockCreatorClick = onBlockCreatorClick,
+            onViewSourceClick = onViewSourceClick,
+            viewSource = viewSource
         )
 
         //  Title + metadata
@@ -1386,19 +1377,10 @@ fun PostListingCard(
             onUpvoteClick = onUpvoteClick,
             onDownvoteClick = onDownvoteClick,
             onReplyClick = onReplyClick,
-            onCommunityClick = onCommunityClick,
-            onPersonClick = onPersonClick,
-            onEditPostClick = onEditPostClick,
-            onDeletePostClick = onDeletePostClick,
-            onReportClick = onReportClick,
-            onBlockCommunityClick = onBlockCommunityClick,
-            onBlockCreatorClick = onBlockCreatorClick,
-            onViewSourceClick = onViewSourceClick,
             showReply = showReply,
             account = account,
             modifier = Modifier.padding(horizontal = MEDIUM_PADDING),
             enableDownVotes = enableDownVotes,
-            viewSource = viewSource,
         )
     }
 }
