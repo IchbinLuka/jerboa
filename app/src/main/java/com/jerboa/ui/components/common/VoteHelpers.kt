@@ -18,6 +18,7 @@ import com.jerboa.R
 import com.jerboa.VoteType
 import com.jerboa.db.Account
 import com.jerboa.getVoteString
+import com.jerboa.db.entity.Account
 import com.jerboa.ui.theme.muted
 
 @Composable
@@ -120,7 +121,7 @@ fun VoteDisplay(
             contentDescription = "",
             account = account
         )
-        
+
         Text(
             text = if (showVotes) getVoteString(upVotes - downVotes) else "Vote",
             color = scoreColor(myVote = myVote),

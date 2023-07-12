@@ -11,10 +11,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.jerboa.R
-import com.jerboa.db.AccountViewModel
+import com.jerboa.model.AccountSettingsViewModel
+import com.jerboa.model.AccountViewModel
+import com.jerboa.model.SiteViewModel
 import com.jerboa.ui.components.common.SimpleTopAppBar
 import com.jerboa.ui.components.common.getCurrentAccount
-import com.jerboa.ui.components.home.SiteViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
