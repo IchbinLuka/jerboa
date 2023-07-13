@@ -136,6 +136,7 @@ fun PostHeaderLine(
     onDeletePostClick: (postView: PostView) -> Unit = {},
     onReportClick: (postView: PostView) -> Unit = {},
     blurNSFW: Boolean,
+    onShareClick: (url: String) -> Unit,
     onViewSourceClick: () -> Unit,
     viewSource: Boolean,
 ) {
@@ -323,7 +324,8 @@ fun PostHeaderLinePreview() {
         account = null,
         blurNSFW = true,
         onViewSourceClick = {},
-        viewSource = false
+        viewSource = false,
+        onShareClick = {}
     )
 }
 
@@ -716,12 +718,7 @@ fun PostFooterLinePreview() {
         onUpvoteClick = {},
         onReplyClick = {},
         onDownvoteClick = {},
-        onEditPostClick = {},
-        onDeletePostClick = {},
-        onBlockCreatorClick = {},
-        onBlockCommunityClick = {},
         onShareClick = {},
-        onViewSourceClick = {},
         enableDownVotes = true,
     )
 }
@@ -1425,6 +1422,7 @@ fun PostListingCard(
             account = account,
             modifier = Modifier.padding(horizontal = MEDIUM_PADDING),
             enableDownVotes = enableDownVotes,
+            onShareClick = {}
         )
     }
 }
